@@ -4,12 +4,43 @@ import os
 import cv2
 import numpy as np
 
+# empirically gathered brightness information based on windows calibration results
+# still do not produce similar results to windows calibration
+BRIGHTNESS_INFO = { 
+        0: 0.0,
+        1: 0.0,
+        9: 1.0,
+        10: 4.0,
+        11: 4.0,
+        12: 4.0,
+        13: 0.0,
+        14: 4.0,
+        15: -3.0,
+        16: 1.0,
+        20: 4.0,
+        21: 0.0,
+        23: 4600.0,
+        37: -1.0,
+        40: 1.0,
+        41: 1.0,
+        50: 2.0,
+        51: 0.0
+}
+
+FRAME_INFO = {
+    cv2.CAP_PROP_FRAME_WIDTH: 3448,
+    cv2.CAP_PROP_FRAME_HEIGHT: 808
+}
+
 class PS4DataSource():
-    def __init__(self, camera_idx=0):
+    def __init__(self, camera_idx=0, use_windows_autoadapt=True):
         self.camera_idx = camera_idx
+        self.use_windows_autoadapt = use_windows_autoadapt
         self._skip_brightness_calibration = False
         self._load_camera_firmware()
-        self._adapt_camera_brightess()
+        self._open_capture_source()
+        self._adapt_brightness()
+        self._adjust_frames()
 
     def _load_camera_firmware(self):
         _cwd = os.getcwd()
@@ -19,39 +50,67 @@ class PS4DataSource():
         self._skip_brightness_calibration = 'Usb Boot device not found...' in status
         os.chdir(_cwd)
 
-    def _adapt_camera_brightess(self):
-        # Using windows camera predefined camera init functionality
-        # TODO: try to replace these with OpenCV functionalities
+    def _open_capture_source(self):
+        self.cap = cv2.VideoCapture(self.camera_idx, cv2.CAP_MSMF)
+        if not self.cap.isOpened():
+            print("Cannot open camera")
+            exit()
+
+    def _adapt_brightness(self):
         if self._skip_brightness_calibration:
-            return # if firmware was previously loaded we skip the calibration
+            return
+
+        if self.use_windows_autoadapt:
+            self._adapt_brightness_using_windows()
+        else:
+            self._adapt_brightness_using_config()  
+
+    def _adapt_brightness_using_windows(self):
+        # Using windows camera predefined camera init functionality
         subprocess.run('start microsoft.windows.camera:', shell=True)
         time.sleep(4) # wait for camera brightness to calibrate
         subprocess.run('Taskkill /IM WindowsCamera.exe /F', shell=True)
+        time.sleep(1)
 
-    def _extract_stereo(self, frame, x_shift=48, y_shift=0, width=320, height=192):
+    def _adapt_brightness_using_config(self):
+        # TODO: find magic numbers for brightness configuration
+        for key, value in BRIGHTNESS_INFO.items():
+            self.cap.set(key, value)
+
+    def _adjust_frames(self):
+        for key, value in FRAME_INFO.items():
+            self.cap.set(key,value)
+
+    def _extract_stereo(self, frame, x_shift=64, y_shift=0, width=1264, height=800, frame_shape=None):
         frame_l = frame[y_shift:y_shift+height,
                         x_shift:x_shift + width]
         frame_r = frame[y_shift:y_shift+height, 
                         x_shift + width:x_shift + width*2]
+        if frame_shape:
+            frame_l = cv2.resize(frame_l, frame_shape)
+            frame_r = cv2.resize(frame_r, frame_shape)
         return frame_l, frame_r
         
-    def calculate_disparity(self, frame_l, frame_r):
-        # https://docs.opencv.org/4.5.2/dd/d53/tutorial_py_depthmap.html
-        # https://docs.opencv.org/4.5.2/d3/d14/tutorial_ximgproc_disparity_filtering.html <- improve disparity
-        cv2.resize(frame_l, (600, 800))
-        cv2.resize(frame_r, (600, 800))
-        stereo = cv2.StereoBM_create(numDisparities=32, blockSize=15)
-        disparity = stereo.compute(frame_r, frame_l)
-        return disparity
+    def calculate_disparity(self, frame_l, frame_r, minDisparity=10, maxDisparity=98, winSize=5):
+        numDisparities = maxDisparity - minDisparity # Needs to be divisible by 16
+        # stereo = cv2.StereoSGBM_create(minDisparity=minDisparity, numDisparities=numDisparities,
+        #                                blockSize=5, P1=8*3*winSize**2, P2=32*3*winSize**2,
+        #                                disp12MaxDiff=50, uniquenessRatio=10,
+        #                                speckleWindowSize=128, speckleRange=10
+        #                                )
+        stereo = cv2.StereoBM_create(numDisparities=96, blockSize=15)
+        disparity = stereo.compute(frame_l, frame_r).astype(np.float32) / 16.0
+
+        disparity_scaled = (disparity - minDisparity) / numDisparities
+        disparity_scaled += abs(np.amin(disparity_scaled))
+        disparity_scaled /= np.amax(disparity_scaled)
+        disparity_scaled[disparity_scaled < 0] = 0
+        return np.array(255 * disparity_scaled, np.uint8) 
 
     def start(self):
-        cap = cv2.VideoCapture(self.camera_idx)
-        if not cap.isOpened():
-            print("Cannot open camera")
-            exit()
         while True:
             # Capture frame-by-frame
-            ret, frame = cap.read()
+            ret, frame = self.cap.read()
             # if frame is read correctly ret is True
             if not ret:
                 print("Can't receive frame (stream end?). Exiting ...")
@@ -60,15 +119,15 @@ class PS4DataSource():
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             frame_l, frame_r = self._extract_stereo(gray)
-            disparity = self.calculate_disparity(frame_l, frame_r)
+            # disparity = self.calculate_disparity(frame_l, frame_r)
 
             # Display the resulting frame
-            cv2.imshow('stereo', np.concatenate([frame_l, frame_r]))
-            cv2.imshow('disparity', disparity)
+            cv2.imshow('stereo', np.concatenate([frame_l, frame_r], axis=1))
+            # cv2.imshow('disparity', disparity)
             if cv2.waitKey(1) == ord('q'):
                 break
         # When everything done, release the capture
-        cap.release()
+        self.cap.release()
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
