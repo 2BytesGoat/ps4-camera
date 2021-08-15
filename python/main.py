@@ -4,38 +4,14 @@ import os
 import cv2
 import numpy as np
 
-# empirically gathered brightness information based on windows calibration results
-# still do not produce similar results to windows calibration
-BRIGHTNESS_INFO = { 
-        0: 0.0,
-        1: 0.0,
-        9: 1.0,
-        10: 4.0,
-        11: 4.0,
-        12: 4.0,
-        13: 0.0,
-        14: 4.0,
-        15: -3.0,
-        16: 1.0,
-        20: 4.0,
-        21: 0.0,
-        23: 4600.0,
-        37: -1.0,
-        40: 1.0,
-        41: 1.0,
-        50: 2.0,
-        51: 0.0
-}
-
 FRAME_INFO = {
     cv2.CAP_PROP_FRAME_WIDTH: 3448,
     cv2.CAP_PROP_FRAME_HEIGHT: 808
 }
 
 class PS4DataSource():
-    def __init__(self, camera_idx=0, use_windows_autoadapt=True):
+    def __init__(self, camera_idx=0):
         self.camera_idx = camera_idx
-        self.use_windows_autoadapt = use_windows_autoadapt
         self._skip_brightness_calibration = False
         self._load_camera_firmware()
         self._open_capture_source()
@@ -51,7 +27,7 @@ class PS4DataSource():
         os.chdir(_cwd)
 
     def _open_capture_source(self):
-        self.cap = cv2.VideoCapture(self.camera_idx, cv2.CAP_MSMF)
+        self.cap = cv2.VideoCapture(self.camera_idx)
         if not self.cap.isOpened():
             print("Cannot open camera")
             exit()
@@ -59,11 +35,7 @@ class PS4DataSource():
     def _adapt_brightness(self):
         if self._skip_brightness_calibration:
             return
-
-        if self.use_windows_autoadapt:
-            self._adapt_brightness_using_windows()
-        else:
-            self._adapt_brightness_using_config()  
+        self._adapt_brightness_using_windows()  
 
     def _adapt_brightness_using_windows(self):
         # Using windows camera predefined camera init functionality
@@ -74,8 +46,9 @@ class PS4DataSource():
 
     def _adapt_brightness_using_config(self):
         # TODO: find magic numbers for brightness configuration
-        for key, value in BRIGHTNESS_INFO.items():
-            self.cap.set(key, value)
+        # for key, value in BRIGHTNESS_INFO.items():
+        #     self.cap.set(key, value)
+        pass
 
     def _adjust_frames(self):
         for key, value in FRAME_INFO.items():

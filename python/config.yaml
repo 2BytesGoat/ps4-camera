@@ -1,0 +1,23 @@
+{
+  # empirically gathered brightness information based on windows calibration results
+  # still do not produce similar results to windows calibration
+  'BRIGHTNESS_INFO': { 
+    0: 0.0,       # cv::CAP_PROP_POS_MSEC
+    1: 0.0,       # cv::CAP_PROP_POS_FRAMES
+    9: 1.0,       # cv::CAP_PROP_MODE
+    10: 4.0,      # cv::CAP_PROP_BRIGHTNESS
+    11: 4.0,      # cv::CAP_PROP_CONTRAST
+    12: 4.0,      # cv::CAP_PROP_SATURATION
+    13: 0.0,      # cv::CAP_PROP_HUE
+    14: 4.0,      # cv::CAP_PROP_GAIN
+    15: -3.0,     # cv::CAP_PROP_EXPOSURE
+    16: 1.0,      # cv::CAP_PROP_CONVERT_RGB
+    20: 4.0,      # cv::CAP_PROP_SHARPNESS
+    21: 0.0,      # cv::CAP_PROP_AUTO_EXPOSURE
+    23: 4600.0,   # cv::CAP_PROP_TEMPERATURE
+    37: -1.0,     # cv::CAP_PROP_SETTINGS
+    40: 1.0,      # cv::CAP_PROP_SAR_NUM 
+    41: 1.0,      # cv::CAP_PROP_SAR_DEN
+    # 42: 1400.0, # cv::CAP_PROP_BACKEND (cv2.CAP_MSMF) - readonly set on cap open
+  }
+}
