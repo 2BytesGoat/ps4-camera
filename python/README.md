@@ -8,3 +8,7 @@
 
 ## Nice to have
 * create calibration pipeline to be included in camera data source
+
+## Refferences
+This project would not be possible without the code provided by:
+1. Eugene Pomazov -- [stereopi-tutorial](https://github.com/realizator/stereopi-tutorial) -- Stereo Camera Calibration 
