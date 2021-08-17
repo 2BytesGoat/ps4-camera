@@ -1,9 +1,15 @@
 import os
 import cv2
 import time
+import numpy as np
 from datetime import datetime
 
 from src.preparation.data_source.ps4_data_source import PS4DataSource
+
+""" ! IMPORTANT !
+
+The checkerboard pattern I used is located in ./data/calibration/pattern.png
+"""
 
 # Photo session settings
 total_photos = 30               # Number of images to take
@@ -11,7 +17,7 @@ countdown = 5                   # Interval for count-down timer, seconds
 font = cv2.FONT_HERSHEY_SIMPLEX # Cowntdown timer font
 camera_index = 0
 grayscale = False
-dst_folder = './data/calibration'
+dst_folder = './data/calibration/scenes'
 
 if __name__ == '__main__':
     # Initialize the camera
@@ -34,11 +40,14 @@ if __name__ == '__main__':
         if cntdwn_timer == -1:
             counter += 1
             filename = f'{dst_folder}/scene_PS4cam_{counter}.png'
-            cv2.imwrite(filename, frame_r)
+            cv2.imwrite(filename, np.concatenate([frame_r, frame_l], axis=1))
             print (' ['+str(counter)+' of '+str(total_photos)+'] '+filename)
             t2 = datetime.now()
             time.sleep(1)
             cntdwn_timer = 0  # To avoid "-1" timer display next
+
+        if counter >= total_photos:
+            break
 
         # Draw cowntdown counter, seconds
         cv2.putText(frame_r, str(cntdwn_timer), (50,50), font, 2.0, (0,0,255),4, cv2.LINE_AA)

@@ -1,5 +1,8 @@
 # Refferences
 
+## Camera types and differences
+https://www.reddit.com/r/xboxone/comments/1kww8k/what_are_the_major_differences_between_the_kinect/
+
 ## Video preprocessing
 https://www.photomodeler.com/kb/the_importance_of_camera_calibration
 
