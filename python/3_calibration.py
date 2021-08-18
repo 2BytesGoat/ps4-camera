@@ -34,18 +34,18 @@ if __name__ == '__main__':
             print (error)
             print ("Pair No "+ str(frame_idx) + " ignored")
         else:
-            calibrator.add_corners((frame_l, frame_r), True)
+            calibrator.add_corners((frame_r, frame_l), True)
 
     print ('End cycle')
 
     print ('Starting calibration... It can take several minutes!')
     calibration = calibrator.calibrate_cameras()
-    calibration.export('calibration_results')
+    calibration.export('calibration_params')
     print ('Calibration complete!')
 
     # Lets rectify and show last pair after  calibration
-    calibration = StereoCalibration(input_folder='calibration_results')
-    rectified_pair = calibration.rectify((frame_l, frame_r))
+    calibration = StereoCalibration(input_folder='calibration_params')
+    rectified_pair = calibration.rectify((frame_r, frame_l))
 
     result = np.concatenate(rectified_pair, axis=1)
 
