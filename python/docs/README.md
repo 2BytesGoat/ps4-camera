@@ -10,3 +10,4 @@ https://www.photomodeler.com/kb/the_importance_of_camera_calibration
 https://docs.opencv.org/4.5.2/dd/d53/tutorial_py_depthmap.html
 https://docs.opencv.org/4.5.2/d3/d14/tutorial_ximgproc_disparity_filtering.html
 https://github.com/realizator/stereopi-tutorial
+https://answers.opencv.org/question/213227/stereo-sgbm-algorithm/

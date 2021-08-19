@@ -70,8 +70,8 @@ if __name__ == '__main__':
     frame_r = cv2.imread(frame_r_path, 0)
 
     calibration = StereoCalibration(input_folder='calibration_params')
-    rectified_pair = calibration.rectify((frame_r, frame_l))
-    # rectified_pair = (frame_l, frame_r)
+    # rectified_pair = calibration.rectify((frame_r, frame_l))
+    rectified_pair = (frame_r, frame_l)
 
     stereo = cv2.StereoBM_create(numDisparities=16, blockSize=15)
     disparity = stereo_depth_map(rectified_pair)

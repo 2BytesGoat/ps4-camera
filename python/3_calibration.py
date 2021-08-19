@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from pathlib import Path
+from numpy.core.fromnumeric import resize
 
 from stereovision.calibration import StereoCalibrator, StereoCalibration
 from stereovision.exceptions import ChessboardNotFoundError
@@ -14,7 +15,15 @@ square_size = 2.1 # may vary based on your print
 # Frame parameters
 frame_height = 800
 frame_width = 1264
+rect_rame_height = 600
+rect_frame_width = 1600
 frame_path = './data/calibration/pairs'
+
+def draw_line(img, start, end, color=(0, 0, 255)):
+    thickness = 2
+    line_type = 8
+    cv2.line(img, start, end,
+             color, thickness, line_type)
 
 if __name__ == '__main__':
     calibrator = StereoCalibrator(rows, columns, square_size, (frame_width, frame_height))
@@ -48,6 +57,11 @@ if __name__ == '__main__':
     rectified_pair = calibration.rectify((frame_r, frame_l))
 
     result = np.concatenate(rectified_pair, axis=1)
+    result = cv2.resize(result, (rect_frame_width, rect_rame_height))
+
+    # Draw lines to visualize calibration
+    for y in range(50, rect_rame_height, 50):
+        draw_line(result, start=[0, y], end=[rect_frame_width, y], color=(0, 0, 255))
 
     cv2.imshow('Rectified Images', result)
     cv2.imwrite(f'./data/calibration/rectified_images.jpg', result)
