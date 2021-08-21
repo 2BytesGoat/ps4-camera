@@ -1,8 +1,12 @@
-import subprocess
-import time
 import os
 import cv2
+import time
+import json
+import subprocess
 import numpy as np
+from numpy.lib.function_base import disp
+
+from stereovision.calibration import StereoCalibration
 
 FRAME_INFO = {
     cv2.CAP_PROP_FRAME_WIDTH: 3448,
@@ -10,14 +14,16 @@ FRAME_INFO = {
 }
 
 class PS4DataSource():
-    def __init__(self, camera_idx=0, grayscale=True):
+    def __init__(self, camera_idx=0, use_calibration=True, 
+            calibration_params='./src/calibration_params'):
         self.camera_idx = camera_idx
-        self.grayscale = grayscale
+        self.use_calibration = use_calibration
+        self.calibration_params = calibration_params
         self._skip_brightness_calibration = False
         self._load_camera_firmware()
         self._open_capture_source()
         self._adapt_brightness()
-        self._adjust_frames()
+        self._load_calibration_params()
 
     def _load_camera_firmware(self):
         _cwd = os.getcwd()
@@ -32,6 +38,8 @@ class PS4DataSource():
         if not self.cap.isOpened():
             print("Cannot open camera")
             exit()
+        for key, value in FRAME_INFO.items():
+            self.cap.set(key,value)
 
     def _adapt_brightness(self):
         if self._skip_brightness_calibration:
@@ -52,9 +60,48 @@ class PS4DataSource():
         # Step2: self.cap.set(key, value)
         pass
 
-    def _adjust_frames(self):
-        for key, value in FRAME_INFO.items():
-            self.cap.set(key,value)
+    def _load_depth_calibration_params(self):
+        param_path = os.path.join(self.calibration_params, '3dmap_set.txt')
+        if not os.path.isfile(param_path):
+            return None, None, None
+
+        with open(param_path, 'r') as f:
+            param_dict = json.load(f)
+        
+        # define algorithm for calculating disparities
+        left_matcher = cv2.StereoBM_create()
+
+        # load params for computing disparity
+        left_matcher.setPreFilterCap(param_dict['preFilterCap'])
+        left_matcher.setMinDisparity(param_dict['minDisparity'])
+        left_matcher.setNumDisparities(param_dict['numberOfDisparities'])
+        left_matcher.setTextureThreshold(param_dict['textureThreshold'])
+        left_matcher.setUniquenessRatio(param_dict['uniquenessRatio'])
+        left_matcher.setSpeckleRange(param_dict['speckleRange'])
+        left_matcher.setSpeckleWindowSize(param_dict['speckleWindowSize'])
+
+        right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+
+        # load params for smoothing disparity
+        wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
+        wls_filter.setLambda(param_dict['lambda'])
+        wls_filter.setSigmaColor(param_dict['sigma'])
+        return left_matcher, right_matcher, wls_filter
+
+    def _load_calibration_params(self):
+        if os.path.isdir(self.calibration_params) and self.use_calibration:
+            self.frame_calibration = StereoCalibration(input_folder=self.calibration_params)
+            self.left_matcher, self.right_matcher, self.wls_filter = self._load_depth_calibration_params()
+            self.use_disparity = True
+        else:
+            print('Could not load calibration params')
+            self.use_calibration   = False
+            self.frame_calibration = None
+            self.left_matcher  = None
+            self.right_matcher = None
+            self.wls_filter    = None
+        if self.left_matcher is None or self.right_matcher is None or self.wls_filter is None:
+            self.use_disparity = False
 
     def _extract_stereo(self, frame, x_shift=64, y_shift=0, width=1264, height=800, frame_shape=None):
         frame_r = frame[y_shift:y_shift+height,
@@ -66,35 +113,41 @@ class PS4DataSource():
             frame_l = cv2.resize(frame_l, frame_shape)
         return frame_r, frame_l
         
-    def calculate_disparity(self, frame_l, frame_r, minDisparity=10, maxDisparity=98, winSize=5):
-        numDisparities = maxDisparity - minDisparity # Needs to be divisible by 16
-        # stereo = cv2.StereoSGBM_create(minDisparity=minDisparity, numDisparities=numDisparities,
-        #                                blockSize=5, P1=8*3*winSize**2, P2=32*3*winSize**2,
-        #                                disp12MaxDiff=50, uniquenessRatio=10,
-        #                                speckleWindowSize=128, speckleRange=10
-        #                                )
-        stereo = cv2.StereoBM_create(numDisparities=96, blockSize=15)
-        disparity = stereo.compute(frame_l, frame_r).astype(np.float32) / 16.0
+    def calculate_disparity(self, frame_r, frame_l):
+        if not self.use_disparity:
+            return None
 
-        disparity_scaled = (disparity - minDisparity) / numDisparities
-        disparity_scaled += abs(np.amin(disparity_scaled))
-        disparity_scaled /= np.amax(disparity_scaled)
-        disparity_scaled[disparity_scaled < 0] = 0
-        return np.array(255 * disparity_scaled, np.uint8)
+        # slightly blur the image and downsample it to half
+        stereo_r = cv2.pyrDown(cv2.cvtColor(frame_r, cv2.COLOR_BGR2GRAY))
+        stereo_l = cv2.pyrDown(cv2.cvtColor(frame_l, cv2.COLOR_BGR2GRAY))
+
+        # create disparities
+        left_disp  = self.left_matcher.compute(stereo_l, stereo_r)
+        right_disp = self.right_matcher.compute(stereo_r, stereo_l)
+
+        # filter disparities
+        disparity = self.wls_filter.filter(left_disp, stereo_l, disparity_map_right=right_disp)
+
+        local_max = disparity.max()
+        local_min = disparity.min()
+
+        disparity_visual = (disparity-local_min)*(1.0/(local_max-local_min))
+        return disparity_visual
 
     def stream(self):
         while True:
-            # Capture frame-by-frame
+            # capture frame-by-frame
             ret, frame = self.cap.read()
             # if frame is read correctly ret is True
             if not ret:
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
-            # Our operations on the frame come here
-            if self.grayscale:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             frame_r, frame_l = self._extract_stereo(frame)
+
+            if self.use_calibration:
+                frame_r, frame_l = self.frame_calibration.rectify((frame_r, frame_l))
+
             yield frame_r, frame_l
         return None, None
 
@@ -107,7 +160,12 @@ if __name__ == '__main__':
         if frame_r is None or frame_l is None:
             break
 
+        disparity = data_source.calculate_disparity(frame_r, frame_l)
+
         cv2.imshow('stereo', np.concatenate([frame_r, frame_l], axis=1))
+
+        if not disparity is None:
+            cv2.imshow('disparity', disparity)
 
         if cv2.waitKey(1) == ord('q'):
                 break

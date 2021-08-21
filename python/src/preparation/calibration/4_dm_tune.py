@@ -13,7 +13,8 @@ frame_height = 800
 frame_width = 1264
 frame_path = './data/calibration/pairs'
 
-checkpoint_file = './calibration_params/3dmap_set.txt'
+calibration_params = './src/calibration_params'
+checkpoint_file = './src/calibration_params/3dmap_set.txt'
 
 # Depth map function
 PFC = 29
@@ -27,8 +28,11 @@ SIGMA = 1.5
 LMBDA = 8000.0
 loading_settings = 0
 
-# find out why it works bettwer if you swap the frames
-def stereo_depth_map(stereo_r, stereo_l): 
+def stereo_depth_map(frame_r, frame_l):
+    # slightly blur the image and downsample it to half
+    stereo_r = cv2.pyrDown(cv2.cvtColor(frame_r, cv2.COLOR_BGR2GRAY))
+    stereo_l = cv2.pyrDown(cv2.cvtColor(frame_l, cv2.COLOR_BGR2GRAY))
+
     # create disparities
     left_matcher = cv2.StereoBM_create()
 
@@ -41,8 +45,9 @@ def stereo_depth_map(stereo_r, stereo_l):
     left_matcher.setSpeckleRange(SR)
     left_matcher.setSpeckleWindowSize(SPWS)
 
-    # create disparities
     right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+
+    # create disparities
     left_disp = left_matcher.compute(stereo_l, stereo_r)
     right_disp = right_matcher.compute(stereo_r, stereo_l)
 
@@ -70,7 +75,7 @@ def update(val):
     SIGMA = sSIGMA.val
     LMBDA = sLMBDA.val
     if (loading_settings==0):
-        disparity = stereo_depth_map(stereo_r, stereo_l)
+        disparity = stereo_depth_map(frame_r, frame_l)
         dmObject.set_data(disparity)
         plt.draw()
 
@@ -115,20 +120,16 @@ if __name__ == '__main__':
     frame_r = cv2.imread(frame_r_path)
     frame_l = cv2.imread(frame_l_path)
 
-    calibration = StereoCalibration(input_folder='calibration_params')
+    calibration = StereoCalibration(input_folder=calibration_params)
     frame_r, frame_l = calibration.rectify((frame_r, frame_l))
 
-    # slightly blur the image and downsample it to half
-    stereo_r = cv2.pyrDown(cv2.cvtColor(frame_r, cv2.COLOR_BGR2GRAY))
-    stereo_l = cv2.pyrDown(cv2.cvtColor(frame_l, cv2.COLOR_BGR2GRAY))
-
-    disparity = stereo_depth_map(stereo_r, stereo_l)
+    disparity = stereo_depth_map(frame_r, frame_l)
 
     fig = plt.subplots(1,2)
     plt.subplots_adjust(left=0.15, bottom=0.5)
 
     plt.subplot(1,2,1)
-    dmObject = plt.imshow(np.concatenate([stereo_r, stereo_l], axis=0), 'gray')
+    dmObject = plt.imshow(np.concatenate([frame_r, frame_l], axis=0), 'gray')
 
     plt.subplot(1,2,2)
     dmObject = plt.imshow(disparity, aspect='equal', cmap='jet')

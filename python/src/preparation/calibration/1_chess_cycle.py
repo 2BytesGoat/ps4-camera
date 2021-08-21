@@ -36,6 +36,9 @@ if __name__ == '__main__':
         t1 = datetime.now()
         cntdwn_timer = countdown - int ((t1-t2).total_seconds())
 
+        frame_r = cv2.cvtColor(frame_r, cv2.COLOR_BGR2GRAY)
+        frame_l = cv2.cvtColor(frame_l, cv2.COLOR_BGR2GRAY)
+
         # If cowntdown is zero - let's record next image
         if cntdwn_timer == -1:
             counter += 1
