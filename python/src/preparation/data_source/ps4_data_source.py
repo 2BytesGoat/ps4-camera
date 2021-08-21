@@ -57,14 +57,14 @@ class PS4DataSource():
             self.cap.set(key,value)
 
     def _extract_stereo(self, frame, x_shift=64, y_shift=0, width=1264, height=800, frame_shape=None):
-        frame_l = frame[y_shift:y_shift+height,
+        frame_r = frame[y_shift:y_shift+height,
                         x_shift:x_shift + width]
-        frame_r = frame[y_shift:y_shift+height, 
+        frame_l = frame[y_shift:y_shift+height, 
                         x_shift + width:x_shift + width*2]
         if frame_shape:
-            frame_l = cv2.resize(frame_l, frame_shape)
             frame_r = cv2.resize(frame_r, frame_shape)
-        return frame_l, frame_r
+            frame_l = cv2.resize(frame_l, frame_shape)
+        return frame_r, frame_l
         
     def calculate_disparity(self, frame_l, frame_r, minDisparity=10, maxDisparity=98, winSize=5):
         numDisparities = maxDisparity - minDisparity # Needs to be divisible by 16
@@ -94,8 +94,8 @@ class PS4DataSource():
             if self.grayscale:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            frame_l, frame_r = self._extract_stereo(frame)
-            yield frame_l, frame_r
+            frame_r, frame_l = self._extract_stereo(frame)
+            yield frame_r, frame_l
         return None, None
 
     def close_stream(self):
@@ -103,11 +103,11 @@ class PS4DataSource():
 
 if __name__ == '__main__':
     data_source = PS4DataSource()
-    for frame_l, frame_r in data_source.stream():
-        if frame_l is None or frame_r is None:
+    for frame_r, frame_l in data_source.stream():
+        if frame_r is None or frame_l is None:
             break
 
-        cv2.imshow('stereo', np.concatenate([frame_l, frame_r], axis=1))
+        cv2.imshow('stereo', np.concatenate([frame_r, frame_l], axis=1))
 
         if cv2.waitKey(1) == ord('q'):
                 break

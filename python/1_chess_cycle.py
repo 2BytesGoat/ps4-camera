@@ -30,8 +30,8 @@ if __name__ == '__main__':
     counter = 0
     t2 = datetime.now()
     print ("Starting photo sequence")
-    for frame_l, frame_r in data_source.stream():
-        if frame_l is None or frame_r is None:
+    for frame_r, frame_l in data_source.stream():
+        if frame_r is None or frame_l is None:
             break
         t1 = datetime.now()
         cntdwn_timer = countdown - int ((t1-t2).total_seconds())
@@ -49,12 +49,12 @@ if __name__ == '__main__':
         if counter >= total_photos:
             break
 
-        frame_l = cv2.resize(frame_l, (640, 480))
         frame_r = cv2.resize(frame_r, (640, 480))
+        frame_l = cv2.resize(frame_l, (640, 480))
 
         # Draw cowntdown counter, seconds
         cv2.putText(frame_r, str(cntdwn_timer), (50,50), font, 2.0, (0,0,255),4, cv2.LINE_AA)
-        cv2.imshow("Frame Right", np.concatenate([frame_l, frame_r], axis=1))
+        cv2.imshow("Frame Right", np.concatenate([frame_r, frame_l], axis=1))
         key = cv2.waitKey(1) & 0xFF
 
         # Press 'Q' key to quit, or wait till all photos are taken

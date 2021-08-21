@@ -27,18 +27,18 @@ def draw_line(img, start, end, color=(0, 0, 255)):
 
 if __name__ == '__main__':
     calibrator = StereoCalibrator(rows, columns, square_size, (frame_width, frame_height))
-    for frame_l_path in Path(frame_path).glob('left_*.png'):
-        frame_idx = frame_l_path.stem.split('_')[-1]
+    for frame_r_path in Path(frame_path).glob('right_*.png'):
+        frame_idx = frame_r_path.stem.split('_')[-1]
         
-        frame_l_path = str(frame_l_path)
-        frame_r_path = frame_l_path.replace('left', 'right')
+        frame_r_path = str(frame_r_path)
+        frame_l_path = frame_r_path.replace('right', 'left')
 
-        frame_l = cv2.imread(frame_l_path,1)
         frame_r = cv2.imread(frame_r_path,1)
+        frame_l = cv2.imread(frame_l_path,1)
 
         try:
-            calibrator._get_corners(frame_l)
             calibrator._get_corners(frame_r)
+            calibrator._get_corners(frame_l)
         except ChessboardNotFoundError as error:
             print (error)
             print ("Pair No "+ str(frame_idx) + " ignored")

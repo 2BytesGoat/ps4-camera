@@ -63,15 +63,14 @@ def update(val):
         plt.draw()
 
 if __name__ == '__main__':
-    frame_l_path = str(next(Path(frame_path).glob('left_*.png')))
-    frame_r_path = frame_l_path.replace('left', 'right')
+    frame_r_path = str(next(Path(frame_path).glob('right_*.png')))
+    frame_l_path = frame_r_path.replace('right', 'left')
 
-    frame_l = cv2.imread(frame_l_path, 0)
     frame_r = cv2.imread(frame_r_path, 0)
+    frame_l = cv2.imread(frame_l_path, 0)
 
     calibration = StereoCalibration(input_folder='calibration_params')
-    # rectified_pair = calibration.rectify((frame_r, frame_l))
-    rectified_pair = (frame_r, frame_l)
+    rectified_pair = calibration.rectify((frame_r, frame_l))
 
     stereo = cv2.StereoBM_create(numDisparities=16, blockSize=15)
     disparity = stereo_depth_map(rectified_pair)

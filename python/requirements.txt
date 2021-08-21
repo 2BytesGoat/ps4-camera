@@ -1,1 +1,2 @@
 stereovision
+opencv-contrib-python
