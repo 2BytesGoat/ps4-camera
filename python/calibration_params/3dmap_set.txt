@@ -1,0 +1,11 @@
+{
+    "lambda":14397.321428571428,
+    "minDisparity":-23,
+    "numberOfDisparities":80,
+    "preFilterCap":9,
+    "sigma":2.607886904761904,
+    "speckleRange":2,
+    "speckleWindowSize":68,
+    "textureThreshold":450,
+    "uniquenessRatio":11
+}
