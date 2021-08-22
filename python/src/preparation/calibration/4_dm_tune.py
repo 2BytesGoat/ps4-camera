@@ -147,7 +147,7 @@ if __name__ == '__main__':
     SPWSaxe  = plt.axes([0.15, 0.33, 0.7, 0.025], facecolor=axcolor)
 
     sSIGMA = Slider(SIGMAaxe, 'SIGMA',         0,      5, valinit=SIGMA)
-    sLMBDA = Slider(LMBDAaxe, 'LMBDA',      5000,  20000, valinit=LMBDA)
+    sLMBDA = Slider(LMBDAaxe, 'LMBDA',      5000,  30000, valinit=LMBDA)
     sPFC   = Slider(PFCaxe,   'PreFiltCap',  5.0,   63.0, valinit=PFC)
     sMDS   = Slider(MDSaxe,   'MinDISP',  -400.0,  100.0, valinit=MDS)
     sNOD   = Slider(NODaxe,   'NumOfDisp',  16.0,  256.0, valinit=NOD)

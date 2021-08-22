@@ -4,20 +4,19 @@ import time
 import json
 import subprocess
 import numpy as np
-from numpy.lib.function_base import disp
 
 from stereovision.calibration import StereoCalibration
 
-FRAME_INFO = {
+FRAME_INFO = { # move these to config file
     cv2.CAP_PROP_FRAME_WIDTH: 3448,
     cv2.CAP_PROP_FRAME_HEIGHT: 808
 }
 
 class PS4DataSource():
-    def __init__(self, camera_idx=0, use_calibration=True, 
+    def __init__(self, camera_idx=0, calibrate_camera=True, 
             calibration_params='./src/calibration_params'):
         self.camera_idx = camera_idx
-        self.use_calibration = use_calibration
+        self.calibrate_camera = calibrate_camera
         self.calibration_params = calibration_params
         self._skip_brightness_calibration = False
         self._load_camera_firmware()
@@ -89,13 +88,13 @@ class PS4DataSource():
         return left_matcher, right_matcher, wls_filter
 
     def _load_calibration_params(self):
-        if os.path.isdir(self.calibration_params) and self.use_calibration:
+        if os.path.isdir(self.calibration_params) and self.calibrate_camera:
             self.frame_calibration = StereoCalibration(input_folder=self.calibration_params)
             self.left_matcher, self.right_matcher, self.wls_filter = self._load_depth_calibration_params()
             self.use_disparity = True
         else:
             print('Could not load calibration params')
-            self.use_calibration   = False
+            self.calibrate_camera  = False
             self.frame_calibration = None
             self.left_matcher  = None
             self.right_matcher = None
@@ -145,7 +144,7 @@ class PS4DataSource():
 
             frame_r, frame_l = self._extract_stereo(frame)
 
-            if self.use_calibration:
+            if self.calibrate_camera:
                 frame_r, frame_l = self.frame_calibration.rectify((frame_r, frame_l))
 
             yield frame_r, frame_l

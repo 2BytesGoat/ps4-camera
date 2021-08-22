@@ -25,6 +25,16 @@ def draw_line(img, start, end, color=(0, 0, 255)):
     cv2.line(img, start, end,
              color, thickness, line_type)
 
+def display_calibration_lines(frame_pair):
+    result = np.concatenate(frame_pair, axis=1)
+    result = cv2.resize(result, (rect_frame_width, rect_rame_height))
+
+    # Draw lines to visualize calibration
+    for y in range(50, rect_rame_height, 50):
+        draw_line(result, start=[0, y], end=[rect_frame_width, y], color=(0, 0, 255))
+
+    return result
+
 if __name__ == '__main__':
     calibrator = StereoCalibrator(rows, columns, square_size, (frame_width, frame_height))
     for frame_r_path in Path(frame_path).glob('right_*.png'):
@@ -56,13 +66,11 @@ if __name__ == '__main__':
     calibration = StereoCalibration(input_folder='calibration_params')
     rectified_pair = calibration.rectify((frame_r, frame_l))
 
-    result = np.concatenate(rectified_pair, axis=1)
-    result = cv2.resize(result, (rect_frame_width, rect_rame_height))
+    result = display_calibration_lines([frame_r, frame_l])
+    cv2.imshow('Un-rectified Images', result)
+    cv2.waitKey(0)
 
-    # Draw lines to visualize calibration
-    for y in range(50, rect_rame_height, 50):
-        draw_line(result, start=[0, y], end=[rect_frame_width, y], color=(0, 0, 255))
-
+    result = display_calibration_lines(rectified_pair, color=(0, 255, 0))
     cv2.imshow('Rectified Images', result)
     cv2.imwrite(f'./data/calibration/rectified_images.jpg', result)
     cv2.waitKey(0)

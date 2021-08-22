@@ -1,13 +1,15 @@
 # ToDos
+## Approach comparison
+|   Hardware  | FPS |      Limitations       |
+|-------------|-----|------------------------|
+|  PS4 camera |  25 |* Windows brightness calibration <br> * Imperfect camera calibration <br> * Vertical depth bleeding|
+|Logitech C920| unk | * ML library dependency|
 
 ## Should do
-* adapt script for tuning depth map
-* adapt script for visualizing depth map
-* include code for creating depth map into PS4 data source
+* <s>adapt script for tuning depth map</s>
+* <s>adapt script for visualizing depth map</s>
+* <s>include code for creating depth map into PS4 data source</s>
 * experiment with neural network depth map and do comparison
-
-## Nice to have
-* create calibration pipeline to be included in camera data source
 
 ## Refferences
 This project would not be possible without the code provided by:
