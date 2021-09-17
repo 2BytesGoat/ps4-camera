@@ -1,9 +1,9 @@
-import os
 import cv2
-import time
 import json
-import subprocess
 import numpy as np
+import os
+import time
+import subprocess
 
 from stereovision.calibration import StereoCalibration
 
@@ -13,9 +13,11 @@ FRAME_INFO = { # move these to config file
 }
 
 class PS4DataSource():
-    def __init__(self, camera_idx=0, calibrate_camera=True, 
-            calibration_params='./src/calibration_params'):
-        self.camera_idx = camera_idx
+    def __init__(self, camera_idx=0, frame_width=1264, frame_height=800,
+            calibrate_camera=True, calibration_params='./src/data_source/calibration_params'):
+        self.camera_idx   = camera_idx
+        self.frame_width  = frame_width
+        self.frame_height = frame_height
         self.calibrate_camera = calibrate_camera
         self.calibration_params = calibration_params
         self._skip_brightness_calibration = False
@@ -102,15 +104,18 @@ class PS4DataSource():
         if self.left_matcher is None or self.right_matcher is None or self.wls_filter is None:
             self.use_disparity = False
 
-    def _extract_stereo(self, frame, x_shift=64, y_shift=0, width=1264, height=800, frame_shape=None):
-        frame_r = frame[y_shift:y_shift+height,
-                        x_shift:x_shift + width]
-        frame_l = frame[y_shift:y_shift+height, 
-                        x_shift + width:x_shift + width*2]
+    def _extract_stereo(self, frame, x_shift=64, y_shift=0, frame_shape=None):
+        frame_r = frame[y_shift : y_shift+self.frame_height,
+                        x_shift : x_shift+self.frame_width]
+        frame_l = frame[y_shift : y_shift+self.frame_height, 
+                        x_shift+self.frame_width : x_shift+self.frame_width*2]
         if frame_shape:
             frame_r = cv2.resize(frame_r, frame_shape)
             frame_l = cv2.resize(frame_l, frame_shape)
         return frame_r, frame_l
+
+    def get_frame_shape(self):
+        return (self.frame_width, self.frame_height)
         
     def calculate_disparity(self, frame_r, frame_l):
         if not self.use_disparity:
@@ -152,21 +157,3 @@ class PS4DataSource():
 
     def close_stream(self):
         self.cap.release()
-
-if __name__ == '__main__':
-    data_source = PS4DataSource()
-    for frame_r, frame_l in data_source.stream():
-        if frame_r is None or frame_l is None:
-            break
-
-        disparity = data_source.calculate_disparity(frame_r, frame_l)
-
-        cv2.imshow('stereo', np.concatenate([frame_r, frame_l], axis=1))
-
-        if not disparity is None:
-            cv2.imshow('disparity', disparity)
-
-        if cv2.waitKey(1) == ord('q'):
-                break
-
-    data_source.close_stream()
