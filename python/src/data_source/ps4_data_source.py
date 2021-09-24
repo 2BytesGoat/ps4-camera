@@ -31,7 +31,7 @@ class PS4DataSource():
         os.chdir('.\dependencies\PS4-CAMERA-DRIVERS-master')
         proc = subprocess.Popen('OrbisEyeCameraFirmwareLoader.exe', stdout=subprocess.PIPE)
         status = str(proc.stdout.read()).strip() # check if camera firmware was previously loaded
-        self._skip_brightness_calibration = 'Usb Boot device not found...' in status
+        # self._skip_brightness_calibration = 'Usb Boot device not found...' in status
         os.chdir(_cwd)
 
     def _open_capture_source(self):

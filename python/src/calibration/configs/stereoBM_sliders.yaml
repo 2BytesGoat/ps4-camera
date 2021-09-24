@@ -1,0 +1,45 @@
+LMBDA:
+  default: 13000
+  max: 30000
+  min: 5000
+  valstep: 100
+MinDISP:
+  default: -240
+  max: 100
+  min: -400
+  valstep: 5
+NumOfDisp:
+  default: 96
+  max: 256
+  min: 16
+  valstep: 16
+PreFiltCap:
+  default: 25
+  max: 63
+  min: 5
+  valstep: 2
+SIGMA:
+  default: 1
+  max: 5
+  min: 0
+  valstep: 0.1
+SpcklRng:
+  default: 36
+  max: 40
+  min: 0
+  valstep: 1
+SpklWinSze:
+  default: 84
+  max: 300
+  min: 0
+  valstep: 1
+TxtrThrshld:
+  default: 578
+  max: 1000
+  min: 0
+  valstep: 1
+UnicRatio:
+  default: 11
+  max: 20
+  min: 1
+  valstep: 1

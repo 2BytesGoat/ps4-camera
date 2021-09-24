@@ -1,2 +1,4 @@
 stereovision
 opencv-contrib-python
+matplotlib
+pyaml

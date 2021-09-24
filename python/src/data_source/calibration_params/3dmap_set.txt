@@ -1,11 +1,11 @@
 {
-    "lambda":14397.321428571428,
-    "minDisparity":-23,
-    "numberOfDisparities":80,
-    "preFilterCap":9,
-    "sigma":2.607886904761904,
-    "speckleRange":2,
-    "speckleWindowSize":68,
-    "textureThreshold":450,
-    "uniquenessRatio":11
+    "lambda":8087.797619047617,
+    "minDisparity":-7,
+    "numberOfDisparities":112,
+    "preFilterCap":29,
+    "sigma":1.841517857142857,
+    "speckleRange":14,
+    "speckleWindowSize":100,
+    "textureThreshold":98,
+    "uniquenessRatio":9
 }

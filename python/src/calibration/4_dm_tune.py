@@ -9,12 +9,12 @@ from matplotlib.widgets import Slider, Button
 from stereovision.calibration import StereoCalibration
 
 # Frame parameters
-frame_height = 800
-frame_width = 1264
 frame_path = './data/calibration/pairs'
 
-calibration_params = './src/calibration_params'
-checkpoint_file = './src/calibration_params/3dmap_set.txt'
+calibration_params = './src/data_source/calibration_params'
+checkpoint_file = calibration_params + '/3dmap_set.txt'
+
+# look over this https://www.andreasjakl.com/how-to-apply-stereo-matching-to-generate-depth-maps-part-3/
 
 # Depth map function
 PFC = 29
