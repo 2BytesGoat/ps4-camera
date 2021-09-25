@@ -1,0 +1,9 @@
+LMBDA: 5000
+MinDISP: 15
+NumOfDisp: 64
+PreFiltCap: 19
+SIGMA: 3
+SpcklRng: 5
+SpklWinSze: 61
+TxtrThrshld: 1000
+UnicRatio: 4

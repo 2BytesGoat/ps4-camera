@@ -1,0 +1,9 @@
+BlockSize: 5
+Disp12MaxDiff: 0
+LMBDA: 5000
+MinDISP: 8
+NumOfDisp: 64
+SIGMA: 3
+SpcklRng: 5
+SpklWinSze: 61
+UnicRatio: 4

@@ -14,7 +14,7 @@ LMBDA:
   min: 5000
   valstep: 10
 MinDISP:
-  default: 15
+  default: 8
   max: 128
   min: -258
   valstep: 1
