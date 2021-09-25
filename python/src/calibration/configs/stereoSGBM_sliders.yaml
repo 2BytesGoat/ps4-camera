@@ -1,3 +1,13 @@
+BlockSize:
+  default: 5
+  max: 51
+  min: 1
+  valstep: 2
+Disp12MaxDiff:
+  default: 0
+  max: 10
+  min: 0
+  valstep: 1
 LMBDA:
   default: 5000
   max: 30000
@@ -13,11 +23,6 @@ NumOfDisp:
   max: 256
   min: 16
   valstep: 16
-PreFiltCap:
-  default: 19
-  max: 63
-  min: 5
-  valstep: 2
 SIGMA:
   default: 3
   max: 5
@@ -31,11 +36,6 @@ SpcklRng:
 SpklWinSze:
   default: 61
   max: 300
-  min: 0
-  valstep: 1
-TxtrThrshld:
-  default: 1000
-  max: 1000
   min: 0
   valstep: 1
 UnicRatio:
