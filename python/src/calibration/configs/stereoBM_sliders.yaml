@@ -4,17 +4,17 @@ LMBDA:
   min: 5000
   valstep: 10
 MinDISP:
-  default: 15
+  default: -9
   max: 128
   min: -258
   valstep: 1
 NumOfDisp:
-  default: 64
+  default: 96
   max: 256
   min: 16
   valstep: 16
 PreFiltCap:
-  default: 19
+  default: 31
   max: 63
   min: 5
   valstep: 2
@@ -34,7 +34,7 @@ SpklWinSze:
   min: 0
   valstep: 1
 TxtrThrshld:
-  default: 1000
+  default: 31
   max: 1000
   min: 0
   valstep: 1

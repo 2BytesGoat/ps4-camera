@@ -24,7 +24,7 @@ class PS4Calibratior():
 
         self.counter = 0 # How many frames were captured so far
 
-        self.data_source = PS4DataSource(self.camera_index) # Create capture source
+        self.data_source = PS4DataSource(self.camera_index, calibrate_camera=False) # Create capture source
 
     def capture_data(self, dst_folder='./data/calibration/pairs'):
         os.makedirs(dst_folder, exist_ok=True)

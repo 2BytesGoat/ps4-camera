@@ -8,13 +8,13 @@ from matplotlib.widgets import Slider, Button
 from src.depth import get_stereo_depth_algo
 
 class DepthCalibrationUI():
-    def __init__(self, frame_r, frame_l, depth_algo_type='bm', config_path='src/calibration/configs'):
+    def __init__(self, frame_r, frame_l, depth_algo_type='bm', smoothen_depth=True, config_path='src/calibration/configs'):
         self.frame_r = frame_r
         self.frame_l = frame_l
         self.depth_algo_type = depth_algo_type
         self.config_path = config_path
 
-        self.depth_algo = get_stereo_depth_algo(depth_algo_type)
+        self.depth_algo = get_stereo_depth_algo(depth_algo_type, smoothen=smoothen_depth)
         self.loading_settings = False
 
         self.__init_display()

@@ -25,4 +25,4 @@ if __name__ == '__main__':
     frame_r = cv2.pyrDown(frame_r)
     frame_l = cv2.pyrDown(frame_l)
 
-    depth_calibrator = DepthCalibrationUI(frame_r, frame_l, 'sgbm')
+    depth_calibrator = DepthCalibrationUI(frame_r, frame_l, 'bm', smoothen_depth=True)

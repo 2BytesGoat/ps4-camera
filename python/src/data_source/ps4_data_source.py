@@ -138,7 +138,7 @@ class PS4DataSource():
         disparity_visual = (disparity-local_min)*(1.0/(local_max-local_min))
         return disparity_visual
 
-    def stream(self):
+    def stream(self, grayscale=False):
         while True:
             # capture frame-by-frame
             ret, frame = self.cap.read()
@@ -151,6 +151,10 @@ class PS4DataSource():
 
             if self.calibrate_camera:
                 frame_r, frame_l = self.frame_calibration.rectify((frame_r, frame_l))
+
+            if grayscale:
+                frame_r = cv2.cvtColor(frame_r, cv2.COLOR_BGR2GRAY)
+                frame_l = cv2.cvtColor(frame_l, cv2.COLOR_BGR2GRAY)
 
             yield frame_r, frame_l
         return None, None

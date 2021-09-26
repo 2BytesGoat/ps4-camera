@@ -1,4 +1,7 @@
 import cv2
+from matplotlib.pyplot import sca
+import numpy as np
+from numpy.lib.function_base import disp
 import yaml
 
 DEFAULT_BM_CONFIG = 'src/depth/configs/stereoBM.yaml'
@@ -23,21 +26,37 @@ class AbstractDisparity():
     def _init_wls_filter(self):
         self.wls_filter = cv2.ximgproc.createDisparityWLSFilter(self.left_matcher)
 
+    def __convert_to_int16(self, disparity):
+        ''' code based on 
+        https://stackoverflow.com/questions/63675690/disparity-map-post-filtering
+        '''
+        mini, maxi = disparity.min(), disparity.max() 
+        _disparity = np.int16(disparity)         # convert to signed 16 bit integer to allow overflow
+        _disparity = 255/(maxi-mini)*_disparity  # apply scale factor
+
+        _disparity = np.int16(_disparity)
+        return _disparity
+
     def _compute_coarse_disparity(self, frame_l, frame_r):
         return self.left_matcher.compute(frame_l, frame_r)
 
     def _compute_smooth_disparity(self, frame_l, frame_r):
         left_disp = self.left_matcher.compute(frame_l, frame_r)
         right_disp = self.right_matcher.compute(frame_r, frame_l)
-        disparity = self.wls_filter.filter(left_disp, frame_l, disparity_map_right=right_disp)
+
+        left_disp = self.__convert_to_int16(left_disp)
+        right_disp = self.__convert_to_int16(right_disp)
+
+        disparity = self.wls_filter.filter(disparity_map_left=left_disp, left_view=frame_l, 
+                                           disparity_map_right=right_disp, right_view=frame_r)
         return disparity
 
-    def _normalize_disparity(self, disparity):
-        # Normalize the values to a range from 0..255 for a grayscale image
+    def _normalize_disparity(self, disparity, max=1):
+        # Normalize the values to a range from 0..1 for a grayscale image
         local_max = disparity.max()
         local_min = disparity.min()
 
-        disparity = (disparity-local_min)*(1.0/(local_max-local_min))
+        disparity = (disparity-local_min)*(max/(local_max-local_min))
         return disparity
 
     def _update_params(self):
@@ -49,7 +68,8 @@ class AbstractDisparity():
             disparity = self._compute_coarse_disparity(frame_l, frame_r)
         else:
             disparity = self._compute_smooth_disparity(frame_l, frame_r)
-        return self._normalize_disparity(disparity)
+        disparity = self._normalize_disparity(disparity)
+        return disparity
 
     def load_params(self, matcher_params):
         self.matcher_params = matcher_params
