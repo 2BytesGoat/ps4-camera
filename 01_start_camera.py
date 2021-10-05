@@ -7,7 +7,7 @@ from src.depth import get_stereo_depth_algo
 if __name__ == '__main__':
     data_source = PS4DataSource()
     depth_algo = get_stereo_depth_algo('bm', smoothen=True)
-    # depth_algo = get_stereo_depth_algo('sgbm')
+    # depth_algo = get_stereo_depth_algo('sgbm', smoothen=True)
     for frame_r, frame_l in data_source.stream(grayscale=True):
         if frame_r is None or frame_l is None:
             break

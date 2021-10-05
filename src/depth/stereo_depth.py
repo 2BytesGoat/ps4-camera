@@ -64,6 +64,10 @@ class AbstractDisparity():
         self.wls_filter.setSigmaColor(self.matcher_params['SIGMA'])
     
     def compute_disparity(self, frame_l, frame_r):
+        # slightly blur the image and downsample it to half
+        frame_r = cv2.pyrDown(frame_r)
+        frame_l = cv2.pyrDown(frame_l)
+
         if not self.smoothen:
             disparity = self._compute_coarse_disparity(frame_l, frame_r)
         else:
